@@ -252,3 +252,42 @@
 </script>
 </body>
 </html>
+
+/* === Responsive Touch Controls Upgrade === */
+.touch-controls {
+  position: fixed;
+  bottom: 2vh;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 3vw;
+  padding: 1vh 0;
+  pointer-events: auto;
+  z-index: 9999;
+}
+.touch-controls button {
+  width: 14vw;
+  height: 14vw;
+  max-width: 90px;
+  max-height: 90px;
+  min-width: 60px;
+  min-height: 60px;
+  font-size: 5vw;
+  max-font-size: 32px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.25);
+  border: 2px solid #fff;
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+@media (max-width: 600px) {
+  .touch-controls {
+    gap: 5vw;
+  }
+  .touch-controls button {
+    width: 18vw;
+    height: 18vw;
+    font-size: 7vw;
+  }
+}
