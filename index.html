@@ -6,9 +6,9 @@
 <title>Space — Fases, Boss e Explosões (Atualizado)</title>
 <style>
   :root{--bg:#020814;--panel:rgba(255,255,255,0.04);--accent:#3ee7b6}
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:#e6eef1}
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:#e6eef1;-webkit-tap-highlight-color: transparent}
   #wrap{position:relative;width:100vw;height:100vh;overflow:hidden}
-  canvas{display:block;width:100%;height:100%}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
   #ui{position:absolute;left:18px;top:18px;z-index:60;display:flex;gap:10px;align-items:center}
   .pill{background:var(--panel);padding:8px 12px;border-radius:10px;font-weight:700;backdrop-filter:blur(6px)}
   #rightPanel{position:absolute;right:18px;top:18px;z-index:60;text-align:right}
@@ -16,34 +16,20 @@
   #overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:70}
   .menu{background:rgba(2,6,13,0.6);border-radius:14px;padding:24px;width:360px;text-align:center;box-shadow:0 8px 40px rgba(2,6,23,0.6)}
   .small{font-size:13px;color:#a8bac2}
-  #touchControls{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;display:flex;gap:12px;z-index:65}
-  .touchBtn{width:72px;height:56px;border-radius:12px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:800}
+
+  /* touch controls container fixed and responsive */
+  #touchControls{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;display:flex;gap:12px;z-index:120;pointer-events:auto}
+  .touchBtn{width:72px;height:72px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-weight:800;touch-action:none;user-select:none;-webkit-user-select:none}
+  .touchBtn.big{width:92px;height:92px}
   @media(min-width:880px){ #touchControls{display:none} }
-  /* polished HUD */
-  #scoreSmall{font-size:13px;color:#cde;}
-  /* Controles touch mais responsivos para celular */
   @media (max-width: 900px) {
-    #touch-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      pointer-events: auto;
-    }
-    .touch-btn {
-      width: 90px;
-      height: 90px;
-      font-size: 32px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.25);
-      border: 2px solid #fff;
-      backdrop-filter: blur(6px);
-      touch-action: none;
-      user-select: none;
-    }
+    .touchBtn { width:84px; height:84px; border-radius:18px; font-size:28px }
+    #touchControls { gap:16px; bottom:20px }
   }
+
+  /* make hit target larger invisibly */
+  .touchWrap{display:flex;align-items:center;justify-content:center}
+  .touchWrap .hit{position:absolute;left:0;top:0;right:0;bottom:0}
 </style>
 </head>
 <body>
@@ -63,7 +49,7 @@
   <div id="overlay">
     <div class="menu" id="menuStart">
       <h2>🚀 Space — 10 Fases</h2>
-      <p class="small">Movimente: ← → ou toque. Atirar: Espaço, clique ou botão.</p>
+      <p class="small">Movimente: ← → ↑ ↓ ou toque. Atirar: Espaço, clique ou botão.</p>
       <div style="height:12px"></div>
       <button id="startBtn">Iniciar</button>
       <div style="height:8px"></div>
@@ -78,10 +64,13 @@
     </div>
   </div>
 
-  <div id="touchControls">
+  <!-- touch controls: Up, Left, Shoot, Right, Down -->
+  <div id="touchControls" aria-hidden="false">
+    <div class="touchBtn" id="tUp">▲</div>
     <div class="touchBtn" id="tLeft">◀</div>
-    <div class="touchBtn" id="tShoot">🔫</div>
+    <div class="touchBtn big" id="tShoot">🔫</div>
     <div class="touchBtn" id="tRight">▶</div>
+    <div class="touchBtn" id="tDown">▼</div>
   </div>
 </div>
 
@@ -106,8 +95,12 @@
   const overScore = document.getElementById('overScore');
   const imgInput = document.getElementById('imgInput');
   const muteBtn = document.getElementById('muteBtn');
+
+  // touch buttons
   const tLeft = document.getElementById('tLeft');
   const tRight = document.getElementById('tRight');
+  const tUp = document.getElementById('tUp');
+  const tDown = document.getElementById('tDown');
   const tShoot = document.getElementById('tShoot');
 
   // game state
@@ -124,7 +117,7 @@
   const enemyImg = new Image(); enemyImg.src = 'flavioinimigo.png'; let enemyLoaded = false; enemyImg.onload = ()=> enemyLoaded = true;
 
   // stars - positioned in device pixels (not CSS px)
-  const stars = []; function initStars(){ stars.length=0; const count = Math.min(400, Math.floor((window.innerWidth*window.innerHeight)/4000)); for(let i=0;i<count;i++) stars.push({x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, r:Math.random()*1.6+0.2, s:Math.random()*0.6+0.2}); }
+  const stars = []; function initStars(){ stars.length=0; const count = Math.min(400, Math.floor((window.innerWidth*window.innerHeight)/4000)); for(let i=0;i<count;i++) stars.push({x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, r:Math.random()*1.6+0.2, s:Math.random()*0.6+0.2, alpha: 0.8}); }
   initStars();
   window.addEventListener('resize', ()=>{ initStars(); resize(); });
   function updateStars(dt){ for(const s of stars){ s.y += s.s * 60 * dt; if(s.y > window.innerHeight){ s.y = -2; s.x = Math.random()*window.innerWidth; } } }
@@ -153,9 +146,20 @@
   imgInput.addEventListener('change', e=>{ const f = e.target.files && e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=> { playerImg.src = r.result; playerLoaded = false; playerImg.onload = ()=> playerLoaded = true; }; r.readAsDataURL(f); });
 
   // touch controls
-  let touchState = {left:false,right:false,shoot:false};
-  function bindTouch(el,prop){ if(!el) return; el.addEventListener('touchstart',e=>{ e.preventDefault(); touchState[prop]=true; },{passive:false}); el.addEventListener('touchend',e=>{ e.preventDefault(); touchState[prop]=false; },{passive:false}); el.addEventListener('mousedown',()=> touchState[prop]=true); el.addEventListener('mouseup',()=> touchState[prop]=false); }
-  bindTouch(tLeft,'left'); bindTouch(tRight,'right'); bindTouch(tShoot,'shoot');
+  let touchState = {left:false,right:false,up:false,down:false,shoot:false};
+  function bindTouch(el,prop){ if(!el) return;
+      // pointer events for broad device support
+      el.addEventListener('pointerdown', e=>{ e.preventDefault(); touchState[prop]=true; }, {passive:false});
+      el.addEventListener('pointerup', e=>{ e.preventDefault(); touchState[prop]=false; }, {passive:false});
+      el.addEventListener('pointercancel', e=>{ touchState[prop]=false; });
+      // fallback for older browsers
+      el.addEventListener('touchstart', e=>{ e.preventDefault(); touchState[prop]=true; }, {passive:false});
+      el.addEventListener('touchend', e=>{ e.preventDefault(); touchState[prop]=false; }, {passive:false});
+      // mouse support
+      el.addEventListener('mousedown', e=>{ e.preventDefault(); touchState[prop]=true; });
+      el.addEventListener('mouseup', e=>{ e.preventDefault(); touchState[prop]=false; });
+    }
+  bindTouch(tLeft,'left'); bindTouch(tRight,'right'); bindTouch(tUp,'up'); bindTouch(tDown,'down'); bindTouch(tShoot,'shoot');
 
   // keyboard
   const keys = {}; window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; if(e.code==='Space') e.preventDefault(); }); window.addEventListener('keyup', e=> keys[e.key.toLowerCase()]=false);
@@ -172,10 +176,13 @@
   function loop(now){ const dt = Math.min(0.033, (now - last)/1000); last = now; if(!running) return; // input
     if(keys['arrowleft']||keys['a']||touchState.left) player.x -= player.speed * dt;
     if(keys['arrowright']||keys['d']||touchState.right) player.x += player.speed * dt;
+    if(keys['arrowup']||keys['w']||touchState.up) player.y -= player.speed * dt;
+    if(keys['arrowdown']||keys['s']||touchState.down) player.y += player.speed * dt;
     if(keys[' ']||keys['space']||touchState.shoot) shoot();
 
     const W = canvas.width/DPR, H = canvas.height/DPR;
     player.x = Math.max(8, Math.min(player.x, W - player.w - 8));
+    player.y = Math.max(8, Math.min(player.y, H - player.h - 8));
 
     // update stars
     updateStars(dt);
@@ -239,7 +246,7 @@
 
   // input
   window.addEventListener('mousedown', ()=> shoot());
-  setInterval(()=>{ if(touchState.left) keys['arrowleft']=true; else keys['arrowleft']=false; if(touchState.right) keys['arrowright']=true; else keys['arrowright']=false; if(touchState.shoot) shoot(); }, 40);
+  
 
 })();
 </script>
