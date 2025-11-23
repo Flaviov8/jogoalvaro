@@ -249,6 +249,23 @@
   
 
 })();
+// === Touchscreen Free-Move Control ===
+const gameArea = document.getElementById('gameArea');
+
+function handleTouchMove(e) {
+  const rect = gameArea.getBoundingClientRect();
+  const touch = e.touches[0];
+  const tx = touch.clientX - rect.left;
+  const ty = touch.clientY - rect.top;
+
+  // Move player smoothly toward touch position
+  player.x = tx - player.width / 2;
+  player.y = ty - player.height / 2;
+}
+
+gameArea.addEventListener('touchstart', handleTouchMove);
+gameArea.addEventListener('touchmove', handleTouchMove);
+gameArea.addEventListener('touchend', () => {});
 </script>
 </body>
 </html>
