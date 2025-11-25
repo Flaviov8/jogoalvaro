@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Space — D-Pad + Explosão Final (com PowerUps)</title>
+<title>Space — D-Pad + Mestre Carolina Manca (com Itens Raros)</title>
 <style>
   :root{--bg:#020814;--panel:rgba(255,255,255,0.04);--accent:#3ee7b6}
   html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:#e6eef1;-webkit-tap-highlight-color: transparent}
   #wrap{position:relative;width:100vw;height:100vh;overflow:hidden}
   canvas{display:block;width:100%;height:100%;touch-action:none}
-  #ui{position:absolute;left:12px;top:12px;z-index:60;display:flex;gap:8px;align-items:center}
+  #ui{position:absolute;left:12px;top:12px;z-index:60;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .pill{background:var(--panel);padding:8px 10px;border-radius:10px;font-weight:700;backdrop-filter:blur(6px);font-size:14px}
   #rightPanel{position:absolute;right:12px;top:12px;z-index:60;text-align:right}
   button.primary{appearance:none;border:0;background:linear-gradient(90deg,var(--accent),#7be7d0);color:#04221a;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
@@ -46,6 +46,7 @@
     <div class="pill">Score: <span id="score">0</span></div>
     <div class="pill">Destruidos: <span id="killed">0</span></div>
     <div class="pill">Arma: <span id="weaponLevel">1</span></div>
+    <div class="pill">Itens Raros: <span id="rareCount">0</span></div>
   </div>
 
   <div id="rightPanel">
@@ -96,6 +97,7 @@
   const killedEl = document.getElementById('killed');
   const faseEl = document.getElementById('fase');
   const weaponEl = document.getElementById('weaponLevel');
+  const rareCountEl = document.getElementById('rareCount');
   const startBtn = document.getElementById('startBtn');
   const restartBtn = document.getElementById('restartBtn');
   const menuStart = document.getElementById('menuStart');
@@ -103,7 +105,6 @@
   const overScore = document.getElementById('overScore');
   const imgInput = document.getElementById('imgInput');
   const muteBtn = document.getElementById('muteBtn');
-  const dpad = document.getElementById('dpad');
 
   // dpad buttons
   const dbUp = document.getElementById('dbUp');
@@ -117,13 +118,13 @@
   let enemies = [], bullets = [], particles = [], boss = null;
 
   // powerups & weapons
-  let powerups = []; // {x,y,w,h,vy,type}
+  let powerups = []; // {x,y,w,h,vy,type,rare}
   let weaponLevel = 1;  // 1..5
   const MAX_WEAPON = 5;
 
-  // player
+  // player + inventory
   const playerImg = new Image(); playerImg.src = 'alvaro2.png'; let playerLoaded=false; playerImg.onload = ()=> playerLoaded=true;
-  const player = { w:64,h:64,x:0,y:0,speed:520, alive:true };
+  const player = { w:64,h:64,x:0,y:0,speed:520, alive:true, inventory: [] };
 
   function centerPlayer(){ const W = canvas.width/DPR, H = canvas.height/DPR; player.x = Math.floor((W - player.w)/2); player.y = Math.floor(H - player.h - 60); }
 
@@ -148,7 +149,7 @@
   function rects(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
   // spawn enemies
-  function spawnEnemies(){ enemies = []; const W = canvas.width/DPR; const count = Math.min(14, 4 + Math.floor(fase*1.5)); for(let i=0;i<count;i++){ enemies.push({ x: rand(20, W-68), y: rand(-800, -40), w:56, h:56, vy: rand(40, 80) + fase*8, hp: Math.max(1, Math.ceil(1 + fase*0.25)), alive:true, id:i }); } }
+  function spawnEnemies(){ enemies = []; const W = canvas.width/DPR; const count = Math.min(14, 4 + Math.floor(fase*1.2)); for(let i=0;i<count;i++){ enemies.push({ x: rand(20, W-68), y: rand(-800, -40), w:56, h:56, vy: rand(40, 80) + fase*8, hp: Math.max(1, Math.ceil(1 + fase*0.25)), alive:true, id:i }); } }
 
   // bullets
   let lastShot=0;
@@ -162,25 +163,25 @@
     const cx = player.x + player.w/2;
 
     switch(weaponLevel) {
-      case 1: // tiro simples
+      case 1:
         bullets.push({ x: cx-6, y: player.y-10, w:12, h:20, vy:-860, dmg:1 });
         break;
-      case 2: // tiro duplo
+      case 2:
         bullets.push({ x: cx-20, y: player.y-10, w:12, h:20, vy:-860, dmg:1 });
         bullets.push({ x: cx+8,  y: player.y-10, w:12, h:20, vy:-860, dmg:1 });
         break;
-      case 3: // tiro triplo
+      case 3:
         bullets.push({ x: cx-6,  y: player.y-10, w:12, h:20, vy:-860, dmg:1 });
         bullets.push({ x: cx-26, y: player.y-6,  w:12, h:20, vy:-840, dmg:1 });
         bullets.push({ x: cx+14, y: player.y-6,  w:12, h:20, vy:-840, dmg:1 });
         break;
-      case 4: // tiro quádruplo (spread)
+      case 4:
         bullets.push({ x: cx-6,  y: player.y-12, w:12, h:20, vy:-860, dmg:1 });
         bullets.push({ x: cx+12, y: player.y-8,  w:12, h:20, vy:-840, dmg:1 });
         bullets.push({ x: cx-26, y: player.y-8,  w:12, h:20, vy:-840, dmg:1 });
         bullets.push({ x: cx+32, y: player.y-6,  w:12, h:20, vy:-820, dmg:1 });
         break;
-      case 5: // LASER forte (único porem rápido e dano 2)
+      case 5:
         bullets.push({ x: cx-4, y: player.y-20, w:8, h:40, vy:-1200, dmg:2 });
         break;
       default:
@@ -189,7 +190,14 @@
   }
 
   // explosion particles
-  function spawnExplosion(x,y,amount=22){ if(!player.alive) return; sfxExplosion(); for(let i=0;i<amount;i++){ const ang = rand(0,Math.PI*2); const sp = rand(80,360); particles.push({ x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life:0.6+Math.random()*0.6, r:1+Math.random()*3 }); } }
+  function spawnExplosion(x,y,amount=22){
+    sfxExplosion();
+    for(let i=0;i<amount;i++){
+      const ang = rand(0,Math.PI*2);
+      const sp = rand(80,360);
+      particles.push({ x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life:0.6+Math.random()*0.6, r:1+Math.random()*3 });
+    }
+  }
 
   // load custom player image
   imgInput.addEventListener('change', e=>{
@@ -209,19 +217,49 @@
   const keys = {}; window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; if(e.code==='Space') e.preventDefault(); }); window.addEventListener('keyup', e=> keys[e.key.toLowerCase()]=false);
 
   // start/restart
-  function start(){ if(!playerLoaded){ alert('A imagem da nave ainda está carregando — tente novamente em 1s'); return; } running=true; score=0; killed=0; fase=1; vidas=3; player.alive=true; weaponLevel = 1; updateUI(); centerPlayer(); spawnEnemies(); menuStart.style.display='none'; menuOver.style.display='none'; last = performance.now(); requestAnimationFrame(loop); }
+  function start(){ if(!playerLoaded){ alert('A imagem da nave ainda está carregando — tente novamente em 1s'); return; } running=true; score=0; killed=0; fase=1; vidas=3; player.alive=true; weaponLevel = 1; player.inventory = []; powerups = []; updateUI(); centerPlayer(); spawnEnemies(); menuStart.style.display='none'; menuOver.style.display='none'; last = performance.now(); requestAnimationFrame(loop); }
   startBtn.addEventListener('click', start);
   restartBtn.addEventListener('click', ()=> location.reload());
 
-  function updateUI(){ vidasEl.textContent = vidas; scoreEl.textContent = score; killedEl.textContent = killed; faseEl.textContent = fase; weaponEl.textContent = weaponLevel; }
+  function updateUI(){ vidasEl.textContent = vidas; scoreEl.textContent = score; killedEl.textContent = killed; faseEl.textContent = fase; weaponEl.textContent = weaponLevel; rareCountEl.textContent = player.inventory.length; }
 
-  // spawn boss
-  function spawnBoss(){ boss = { x: (canvas.width/DPR - 320)/2, y: 60, w:320, h:180, hp: 80 }; sfxExplosion(); }
+  // boss (mestre) spawn
+  function spawnMestre(){
+    boss = {
+      x: (canvas.width/DPR - 420)/2,
+      y: 40,
+      w:420,
+      h:220,
+      hp: 180 + Math.floor(Math.random()*60),
+      name: 'Carolina Manca',
+      mestre: true,
+      vx: 0
+    };
+    // create some pre-boss particles / sound
+    sfxPower();
+  }
 
   // powerup spawn helper (called when enemy dies)
-  function spawnPowerUp(x,y){
-    // Only one type for now: weapon upgrade
-    powerups.push({ x: x - 14, y: y - 14, w: 28, h: 28, vy: 120, type: 'weapon' });
+  function spawnPowerUp(x,y, forcedType){
+    // types:
+    // - 'weapon' (comum) : aumenta weaponLevel (temporário until death? but collected persists)
+    // - 'rare' : raro, adiciona ao inventory e confere bônus permanente
+    // - 'life' : +1 vida (uncommon)
+    // If forcedType provided, use it
+    let type = forcedType || 'weapon';
+    // chance override: if not forced, randomly decide rarity
+    if(!forcedType){
+      const r = Math.random();
+      if(r < 0.05) type = 'rare';        // 5% rare
+      else if(r < 0.12) type = 'life';   // 7% life
+      else type = 'weapon';              // rest common
+    }
+
+    const pu = { x: x - 14, y: y - 14, w: 28, h: 28, vy: 120, type: type, id: Math.random().toString(36).slice(2,9) };
+    // mark rare visuals
+    if(type === 'rare') pu.rare = true;
+    powerups.push(pu);
+    return pu;
   }
 
   // main loop
@@ -285,12 +323,17 @@
           if(e.hp <= 0){
             e.alive = false;
             killed++;
-            // score var
             score += 10 + Math.floor(fase*2);
             spawnExplosion(e.x+e.w/2,e.y+e.h/2, 22);
-            // chance to drop powerup (15%)
-            if(Math.random() < 0.15){
-              spawnPowerUp(e.x + e.w/2, e.y + e.h/2);
+            // chance to drop powerup:
+            // 5% rare, 7% life, 8% weapon (so total ~20%)
+            const r = Math.random();
+            if(r < 0.05){
+              spawnPowerUp(e.x + e.w/2, e.y + e.h/2, 'rare');
+            } else if(r < 0.12){
+              spawnPowerUp(e.x + e.w/2, e.y + e.h/2, 'life');
+            } else if(r < 0.2){
+              spawnPowerUp(e.x + e.w/2, e.y + e.h/2, 'weapon');
             }
             updateUI();
           } else {
@@ -302,51 +345,77 @@
       }
     }
 
-    // phase progression
-    if(enemies.every(x=>!x.alive) && !boss){
-      if(fase < 10){
+    // phase progression logic:
+    // clear enemies -> if fase < 9 -> advance to next normal phase
+    // if fase === 9 and cleared -> spawn boss (mestre) as phase 10
+    // if fase === 10 and boss dead -> win handled in boss logic
+    const aliveEnemies = enemies.some(e=>e.alive);
+    if(!aliveEnemies && !boss){
+      if(fase < 9){
         fase++;
         updateUI();
         spawnEnemies();
-      } else {
-        spawnBoss();
+      } else if(fase === 9){
+        // next is final boss (mestre)
+        fase = 10;
+        updateUI();
+        spawnMestre();
       }
     }
 
-    // boss handling
+    // boss (mestre) handling
     if(boss){
-      boss.y += Math.sin(performance.now()*0.001) * 0.2;
+      // simple horizontal patrol
+      boss.x += Math.sin(performance.now()*0.0007) * 60 * dt;
+      // boss collision with bullets
       for(let j=bullets.length-1;j>=0;j--){
         const b = bullets[j];
         if(rects(b,boss)){
           bullets.splice(j,1);
           boss.hp -= (b.dmg || 1);
-          spawnExplosion(b.x,b.y,10);
+          spawnExplosion(b.x,b.y,8);
           if(boss.hp<=0){
-            spawnExplosion(boss.x+boss.w/2,boss.y+boss.h/2,80);
-            score += 500;
-            updateUI();
-            // boss drops multiple powerups
-            for(let k=0;k<3;k++){
-              spawnPowerUp(boss.x + boss.w*(0.2 + 0.3*k), boss.y + boss.h/2);
+            // big explosion for mestre
+            spawnExplosion(boss.x+boss.w/2,boss.y+boss.h/2,160);
+            // drop several rare items when mestre dies
+            for(let k=0;k<4;k++){
+              spawnPowerUp(boss.x + boss.w*(0.15 + 0.2*k), boss.y + boss.h/2, 'rare');
             }
-            setTimeout(()=> win(),200);
+            score += 1000;
+            updateUI();
+            // mark boss as defeated and win after short delay
+            const defeatedName = boss.name || 'Mestre';
+            boss = null;
+            setTimeout(()=> {
+              win(`${defeatedName} foi derrotada!`);
+            }, 400);
           }
         }
       }
     }
 
-    // update powerups
+    // update powerups (they persist across phases if not collected)
     for (let i = powerups.length - 1; i >= 0; i--) {
       const p = powerups[i];
       p.y += p.vy * dt;
 
-      // coleta pelo player
+      // collect by player
       if (rects(player, p)) {
-        // apenas weapon por enquanto
         if (p.type === 'weapon') {
+          // weapon upgrade: increase weaponLevel up to MAX_WEAPON and persist across phases
           weaponLevel++;
           if (weaponLevel > MAX_WEAPON) weaponLevel = MAX_WEAPON;
+          sfxPower();
+        } else if (p.type === 'life') {
+          vidas++;
+          sfxPower();
+        } else if (p.type === 'rare') {
+          // rare: goes into player's inventory and grants a permanent bonus
+          player.inventory.push({ id: p.id, name: 'Relíquia Rara', bonus: 'arma+' + 1 });
+          // grant a permanent max weapon increase (example)
+          if (MAX_WEAPON < 6) {} // keep compatibility - not changing constant
+          // optionally increment weaponLevel (permanent boost)
+          weaponLevel = Math.min(MAX_WEAPON, weaponLevel + 1);
           sfxPower();
         }
         powerups.splice(i, 1);
@@ -354,8 +423,8 @@
         continue;
       }
 
-      // sai da tela
-      if (p.y > H + 40) powerups.splice(i, 1);
+      // if go off screen, keep them removed to avoid infinite memory leak
+      if (p.y > H + 200) powerups.splice(i, 1);
     }
 
     // update particles
@@ -373,13 +442,10 @@
   }
 
   function playerDie(){
-    // final explosion + sound + screen shake -> game over
     player.alive = false;
     spawnExplosion(player.x + player.w/2, player.y + player.h/2, 96);
-    // shake canvas wrapper briefly
     const wrap = document.getElementById('wrap'); wrap.classList.add('shake'); setTimeout(()=> wrap.classList.remove('shake'), 700);
     sfxExplosion();
-    // hide player image by clearing flag (draw will skip)
     playerLoaded = false;
     running = false;
     setTimeout(()=>{
@@ -390,7 +456,13 @@
   }
 
   function gameOver(){ running=false; menuOver.style.display='none'; document.getElementById('overTitle').innerText = 'Game Over'; overScore.innerText = 'Score: ' + score; menuOver.style.display='block'; }
-  function win(){ running=false; menuOver.style.display='none'; document.getElementById('overTitle').innerText = 'Você venceu!'; overScore.innerText = 'Score: ' + score; menuOver.style.display='block'; }
+  function win(message){
+    running=false;
+    menuOver.style.display='none';
+    document.getElementById('overTitle').innerText = message ? message : 'Você venceu!';
+    overScore.innerText = 'Score: ' + score;
+    menuOver.style.display='block';
+  }
 
   // draw
   function draw(){
@@ -419,29 +491,56 @@
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(e.x, e.y-6, e.w, 4);
       ctx.fillStyle = '#ffcc66';
-      const hpPerc = Math.max(0, e.hp) / Math.max(1, Math.ceil(1 + fase*0.25));
+      const baseHp = Math.max(1, Math.ceil(1 + fase*0.25));
+      const hpPerc = Math.max(0, e.hp) / baseHp;
       ctx.fillRect(e.x, e.y-6, e.w * hpPerc, 4);
     }
 
-    // boss
+    // boss (mestre)
     if(boss){
-      ctx.fillStyle = '#9133ff';
+      ctx.fillStyle = '#c13cff';
       ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
       ctx.fillStyle = '#fff';
-      ctx.font = '18px Inter';
-      ctx.fillText('BOSS HP: '+boss.hp, boss.x+12, boss.y+24);
+      ctx.font = '20px Inter';
+      ctx.fillText(boss.name + ' (Mestre)', boss.x + 12, boss.y + 28);
+      ctx.fillText('HP: ' + boss.hp, boss.x + 12, boss.y + 52);
+      // boss aura
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(193,60,255,0.12)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(boss.x-6, boss.y-6, boss.w+12, boss.h+12);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#000';
     }
 
-    // draw powerups
+    // powerups (persist until collected)
     for (const p of powerups) {
-      ctx.fillStyle = '#3ee7b6';
-      ctx.beginPath();
-      ctx.arc(p.x + p.w/2, p.y + p.h/2, 14, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.fillStyle = '#04221a';
-      ctx.font = '16px Inter';
-      ctx.fillText('⚡', p.x + 6, p.y + 22);
+      if(p.rare){
+        // rare visual
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(p.x + p.w/2, p.y + p.h/2, 16, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#331a00';
+        ctx.font = '16px Inter';
+        ctx.fillText('★', p.x + 6, p.y + 22);
+      } else if(p.type === 'life'){
+        ctx.fillStyle = '#ff7b7b';
+        ctx.beginPath();
+        ctx.arc(p.x + p.w/2, p.y + p.h/2, 14, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px Inter';
+        ctx.fillText('+', p.x + 8, p.y + 21);
+      } else {
+        ctx.fillStyle = '#3ee7b6';
+        ctx.beginPath();
+        ctx.arc(p.x + p.w/2, p.y + p.h/2, 14, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#04221a';
+        ctx.font = '16px Inter';
+        ctx.fillText('⚡', p.x + 6, p.y + 22);
+      }
     }
 
     // player
@@ -453,9 +552,6 @@
       ctx.fillStyle = `rgba(255,160,80,${Math.max(0, p.life)})`; ctx.fill();
     }
   }
-
-  // stars helper
-  function drawStars(){ ctx.fillStyle='#bfe7ff'; for(const s of stars) ctx.fillRect(s.x,s.y,s.r,s.r); }
 
   // init
   function initPositions(){ centerPlayer(); spawnEnemies(); updateUI(); }
