@@ -5,41 +5,173 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Space — D-Pad + Mestre Carolina Manca (com Itens Raros e Contra-Ataque)</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<!-- Removido Inter e adicionado fonte arcade retrô -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
   :root{
     --bg:#020814;
-    --panel:rgba(255,255,255,0.04);
-    --accent:#3ee7b6;
+    --panel:rgba(255,255,255,0.08);
+    --accent:#00ff9d;
     --muted:#94a9b3;
-    --danger:#ff6b6b;
+    --danger:#ff3a3a;
     --gold:#ffd700;
+    --neon-cyan:#00f3ff;
+    --neon-pink:#ff00ff;
+    --neon-yellow:#ffff00;
   }
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:#e6eef1;-webkit-tap-highlight-color: transparent}
-  #wrap{position:relative;width:100vw;height:100vh;overflow:hidden}
-  canvas{display:block;width:100%;height:100%;touch-action:none}
+  html,body{height:100%;margin:0;background:var(--bg);font-family:'VT323', monospace;color:#e6eef1;-webkit-tap-highlight-color: transparent;letter-spacing: 1px;}
+  #wrap{position:relative;width:100vw;height:100vh;overflow:hidden;image-rendering: pixelated;image-rendering: crisp-edges;}
+  
+  canvas{display:block;width:100%;height:100%;touch-action:none;image-rendering: pixelated;}
+  
   #ui{position:absolute;left:12px;top:12px;z-index:60;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .pill{background:var(--panel);padding:8px 10px;border-radius:10px;font-weight:700;backdrop-filter:blur(6px);font-size:14px;display:flex;gap:8px;align-items:center}
-  .pill small{font-weight:600;color:var(--muted);font-size:12px}
+  .pill{
+    background:var(--panel);
+    padding:8px 12px;
+    border-radius:6px;
+    font-weight:normal;
+    backdrop-filter:blur(6px);
+    font-size:20px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-family:'VT323', monospace;
+    border: 2px solid rgba(0, 255, 157, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+    text-transform: uppercase;
+  }
+  .pill small{
+    font-weight:normal;
+    color:var(--accent);
+    font-size:24px;
+    font-family:'VT323', monospace;
+    text-shadow: 0 0 8px var(--accent);
+  }
+  
   #rightPanel{position:absolute;right:12px;top:12px;z-index:60;text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-  .button{appearance:none;border:0;background:linear-gradient(90deg,var(--accent),#7be7d0);color:#04221a;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
-  .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:10px;cursor:pointer}
+  
+  .button{
+    appearance:none;
+    border:0;
+    background:linear-gradient(90deg, var(--accent), #00cc7a);
+    color:#000;
+    padding:10px 16px;
+    border-radius:6px;
+    font-weight:normal;
+    cursor:pointer;
+    font-family:'VT323', monospace;
+    font-size:22px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 2px solid #fff;
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+    transition: all 0.2s;
+  }
+  .button:hover{
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.8);
+    transform: translateY(-2px);
+  }
+  
+  .ghost{
+    background:transparent;
+    border:2px solid rgba(0, 255, 157, 0.5);
+    color:var(--accent);
+    padding:10px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:'VT323', monospace;
+    font-size:20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .ghost:hover{
+    background:rgba(0, 255, 157, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+  }
+  
   #overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:70}
-  .menu{background:linear-gradient(180deg, rgba(2,6,13,0.72), rgba(2,6,13,0.5));border-radius:12px;padding:18px;width:340px;max-width:92vw;text-align:center;box-shadow:0 8px 40px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
-  .small{font-size:13px;color:#a8bac2}
-  .muted{color:var(--muted);font-size:13px}
-  h2{margin:0 0 8px 0;font-size:20px}
-
-  /* D-PAD circular control (mobile) */
-  #dpad{position:fixed;left:12px;bottom:12px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.03), rgba(255,255,255,0.01));display:none;align-items:center;justify-content:center;z-index:130;box-shadow:0 6px 20px rgba(0,0,0,0.6);touch-action:none}
-  .dbtn{position:absolute;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);color:#fff;font-weight:800;touch-action:none;user-select:none}
+  .menu{
+    background:rgba(0, 8, 20, 0.95);
+    border-radius:8px;
+    padding:24px;
+    width:380px;
+    max-width:92vw;
+    text-align:center;
+    box-shadow:0 0 40px rgba(0, 255, 157, 0.3);
+    backdrop-filter:blur(10px);
+    border: 3px solid var(--accent);
+    font-family:'VT323', monospace;
+  }
+  .menu h2{
+    margin:0 0 15px 0;
+    font-size:32px;
+    color:var(--accent);
+    text-shadow: 0 0 10px var(--accent);
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .small{font-size:18px;color:#a8bac2; font-family:'VT323', monospace;}
+  .muted{color:var(--muted);font-size:18px; font-family:'VT323', monospace;}
+  
+  /* D-PAD circular control (mobile) - Estilo retrô */
+  #dpad{
+    position:fixed;
+    left:12px;
+    bottom:12px;
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(0, 255, 157, 0.1), rgba(0, 8, 20, 0.8));
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:130;
+    box-shadow:0 0 20px rgba(0, 255, 157, 0.3);
+    touch-action:none;
+    border: 3px solid rgba(0, 255, 157, 0.5);
+  }
+  .dbtn{
+    position:absolute;
+    width:56px;
+    height:56px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0, 0, 0, 0.8);
+    color:var(--accent);
+    font-weight:normal;
+    touch-action:none;
+    user-select:none;
+    font-family:'VT323', monospace;
+    font-size:28px;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+  }
   .d-up{top:12%;left:50%;transform:translateX(-50%)}
   .d-down{bottom:12%;left:50%;transform:translateX(-50%)}
   .d-left{left:12%;top:50%;transform:translateY(-50%)}
   .d-right{right:12%;top:50%;transform:translateY(-50%)}
-  .d-fire{right:-18%;bottom:50%;width:72px;height:72px;background:linear-gradient(90deg,var(--accent),#7be7d0);color:#04221a}
-  .dbtn.active{transform:scale(0.96); box-shadow: 0 4px 12px rgba(0,0,0,0.5) inset;}
+  .d-fire{
+    right:-18%;
+    bottom:50%;
+    width:72px;
+    height:72px;
+    background:linear-gradient(90deg,var(--accent),#00cc7a);
+    color:#000;
+    font-size:32px;
+    border-radius:12px;
+  }
+  .dbtn.active{
+    transform: scale(0.96); 
+    box-shadow: 0 0 20px var(--accent) inset;
+    background: rgba(0, 255, 157, 0.3);
+  }
 
   @media (max-width: 880px){ #dpad{display:flex} }
   @media (min-width: 880px){ #dpad{display:none} }
@@ -47,15 +179,152 @@
 
   /* subtle shake when explosion */
   .shake{animation:shake 600ms ease-in-out}
-  @keyframes shake{0%{transform:translate(0,0)}25%{transform:translate(8px,-6px)}50%{transform:translate(-6px,6px)}75%{transform:translate(6px,-4px)}100%{transform:translate(0,0)} }
+  @keyframes shake{
+    0%{transform:translate(0,0)}
+    25%{transform:translate(8px,-6px)}
+    50%{transform:translate(-6px,6px)}
+    75%{transform:translate(6px,-4px)}
+    100%{transform:translate(0,0)}
+  }
 
   /* hud bottom right for rare count / highscore */
-  #hudRight{position:absolute;right:12px;bottom:12px;z-index:70;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-  .badge{background:rgba(0,0,0,0.5);padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px}
-  .badge .label{font-size:12px;color:var(--muted);display:block}
+  #hudRight{
+    position:absolute;
+    right:12px;
+    bottom:12px;
+    z-index:70;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-end;
+  }
+  .badge{
+    background:rgba(0, 8, 20, 0.9);
+    padding:10px 16px;
+    border-radius:6px;
+    font-weight:normal;
+    font-size:18px;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+    font-family:'VT323', monospace;
+    min-width: 150px;
+    text-align: center;
+  }
+  .badge strong{
+    font-size:28px;
+    color:var(--accent);
+    display: block;
+    text-shadow: 0 0 8px var(--accent);
+  }
+  .badge .label{
+    font-size:16px;
+    color:var(--muted);
+    display:block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
 
   /* footer small credits */
-  .credit{position:absolute;left:12px;bottom:12px;font-size:12px;color:var(--muted);z-index:70}
+  .credit{
+    position:absolute;
+    left:12px;
+    bottom:12px;
+    font-size:16px;
+    color:var(--accent);
+    z-index:70;
+    font-family:'VT323', monospace;
+    text-shadow: 0 0 5px var(--accent);
+  }
+  
+  /* Efeito de scanlines retrô */
+  #wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      rgba(0, 255, 157, 0.03) 50%,
+      rgba(0, 0, 0, 0) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  
+  /* Efeito de borda de monitor CRT */
+  #wrap::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+    z-index: 99;
+    pointer-events: none;
+    border: 2px solid rgba(0, 255, 157, 0.1);
+  }
+  
+  /* Estilo para input file */
+  #imgInput {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+  }
+  
+  /* Estilo para código */
+  code {
+    font-family: 'VT323', monospace;
+    background: rgba(0, 255, 157, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  
+  /* Glitch effect para títulos */
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+  
+  .glitch-text {
+    animation: glitch 0.5s infinite;
+    color: var(--accent);
+    position: relative;
+  }
+  
+  /* Estilo para mensagens de game over */
+  #overTitle {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    color: var(--danger);
+    text-shadow: 0 0 15px var(--danger);
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  
+  #overScore {
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px var(--accent);
+  }
 </style>
 </head>
 <body>
@@ -71,11 +340,11 @@
   </div>
 
   <div id="rightPanel" aria-hidden="false">
-    <div class="pill small">Fase: <small id="fase">1</small></div>
-    <div style="height:4px"></div>
-    <div style="display:flex;gap:8px">
-      <button id="muteBtn" class="button">Som</button>
-      <button id="pauseBtn" class="ghost">Pausar</button>
+    <div class="pill small">Fase: <small id="fase" style="font-size: 28px;">1</small></div>
+    <div style="height:10px"></div>
+    <div style="display:flex;gap:10px">
+      <button id="muteBtn" class="button"><i class="fas fa-volume-up"></i> Som</button>
+      <button id="pauseBtn" class="ghost"><i class="fas fa-pause"></i> Pausar</button>
     </div>
   </div>
 
@@ -86,24 +355,25 @@
 
   <div id="overlay" role="dialog" aria-modal="true">
     <div class="menu" id="menuStart">
-      <h2>🚀 Space — 10 Fases</h2>
-      <p class="small">Movimente: ← → ↑ ↓ (teclado) ou use o D-Pad. Atirar: Espaço / botão.</p>
+      <h2><span class="glitch-text">🚀 SPACE ARCADE</span></h2>
+      <p class="small">← → ↑ ↓ (TECLADO) OU USE O D-PAD<br>ATIRAR: ESPAÇO / BOTÃO FIRE</p>
+      <div style="height:20px"></div>
+      <button id="startBtn" class="button"><i class="fas fa-play"></i> INICIAR JOGO</button>
       <div style="height:12px"></div>
-      <button id="startBtn" class="button">Iniciar</button>
-      <div style="height:8px"></div>
-      <button id="startInsaneBtn" class="ghost">Iniciar Modo Insano</button>
-      <div style="height:12px"></div>
-      <p class="muted">Carregue sua nave (opcional) — ou coloque <code>alvaro2.png</code> na mesma pasta</p>
-      <input id="imgInput" type="file" accept="image/*" style="width:100%;margin-top:8px" />
+      <button id="startInsaneBtn" class="ghost"><i class="fas fa-skull"></i> MODO INSANO</button>
+      <div style="height:20px"></div>
+      <p class="muted">CARREGUE SUA NAVE (OPCIONAL)</p>
+      <p class="small">ou coloque <code>alvaro2.png</code> na mesma pasta</p>
+      <input id="imgInput" type="file" accept="image/*" />
     </div>
 
     <div class="menu" id="menuOver" style="display:none">
-      <h2 id="overTitle">Game Over</h2>
-      <p id="overScore" class="small">Score: 0</p>
-      <div style="height:8px"></div>
-      <button id="restartBtn" class="button">Reiniciar</button>
-      <div style="height:6px"></div>
-      <button id="backToMenuBtn" class="ghost">Voltar ao menu</button>
+      <h2 id="overTitle">GAME OVER</h2>
+      <p id="overScore" class="small">SCORE: 0</p>
+      <div style="height:15px"></div>
+      <button id="restartBtn" class="button"><i class="fas fa-redo"></i> REINICIAR</button>
+      <div style="height:10px"></div>
+      <button id="backToMenuBtn" class="ghost"><i class="fas fa-home"></i> VOLTAR AO MENU</button>
     </div>
   </div>
 
@@ -113,10 +383,10 @@
     <div class="dbtn d-left" id="dbLeft">◀</div>
     <div class="dbtn d-right" id="dbRight">▶</div>
     <div class="dbtn d-down" id="dbDown">▼</div>
-    <div class="dbtn d-fire" id="dbFire">🔫</div>
+    <div class="dbtn d-fire" id="dbFire">FIRE</div>
   </div>
 
-  <div class="credit">Feito com ❤️ — toque para habilitar som</div>
+  <div class="credit">ARCADE EDITION 2024 • TOQUE PARA HABILITAR SOM</div>
 </div>
 
 <script>
@@ -136,6 +406,11 @@
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
     ctx.setTransform(DPR,0,0,DPR,0,0);
+    
+    // Aplicar efeito pixelado
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
   }
   window.addEventListener('resize', resize, { passive:true });
   resize();
@@ -181,16 +456,32 @@
   }
   window.addEventListener('pointerdown', ensureAudioResume, { once:true });
 
-  muteBtn.onclick = ()=>{ muted = !muted; muteBtn.textContent = muted? 'Som Off':'Som'; };
+  muteBtn.onclick = ()=>{
+    muted = !muted; 
+    muteBtn.innerHTML = muted ? '<i class="fas fa-volume-mute"></i> Som OFF' : '<i class="fas fa-volume-up"></i> Som';
+  };
 
   function sfx(type){
     if(!audioCtx || muted) return;
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    if(type === 'explosion'){ o.type='sawtooth'; o.frequency.value = 80 + Math.random()*160; g.gain.value = 0.12; }
-    if(type === 'shoot'){ o.type='square'; o.frequency.value = 1100; g.gain.value = 0.06; }
-    if(type === 'power'){ o.type='triangle'; o.frequency.value = 600; g.gain.value = 0.08; }
-    o.connect(g); g.connect(audioCtx.destination);
+    if(type === 'explosion'){ 
+      o.type='sawtooth'; 
+      o.frequency.value = 80 + Math.random()*160; 
+      g.gain.value = 0.12; 
+    }
+    if(type === 'shoot'){ 
+      o.type='square'; 
+      o.frequency.value = 1100; 
+      g.gain.value = 0.06; 
+    }
+    if(type === 'power'){ 
+      o.type='triangle'; 
+      o.frequency.value = 600; 
+      g.gain.value = 0.08; 
+    }
+    o.connect(g); 
+    g.connect(audioCtx.destination);
     o.start();
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12 + Math.random()*0.18);
     o.stop(audioCtx.currentTime + 0.15 + Math.random()*0.2);
@@ -212,21 +503,55 @@
 
   const player = { w:64, h:64, x:0, y:0, speed:520, alive:true, inventory:[] };
 
-  function centerPlayer(){ const W = canvas.width/DPR, H = canvas.height/DPR; player.x = Math.floor((W - player.w)/2); player.y = Math.floor(H - player.h - 60); }
+  function centerPlayer(){ 
+    const W = canvas.width/DPR, H = canvas.height/DPR; 
+    player.x = Math.floor((W - player.w)/2); 
+    player.y = Math.floor(H - player.h - 60); 
+  }
 
   /* -------------------------
-     Stars backdrop
+     Stars backdrop - Estilo retrô
      ------------------------- */
   const stars = [];
   function initStars(){
     stars.length = 0;
-    const count = Math.min(500, Math.floor((window.innerWidth*window.innerHeight)/4000));
-    for(let i=0;i<count;i++) stars.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*1.6+0.2, s: Math.random()*0.6+0.15 });
+    const count = Math.min(300, Math.floor((window.innerWidth*window.innerHeight)/4000));
+    for(let i=0;i<count;i++) stars.push({ 
+      x: Math.random()*window.innerWidth, 
+      y: Math.random()*window.innerHeight, 
+      r: Math.random()*2+0.5, 
+      s: Math.random()*0.8+0.2,
+      blink: Math.random() > 0.7,
+      blinkSpeed: Math.random() * 0.05 + 0.02
+    });
   }
   initStars();
   window.addEventListener('resize', ()=> { initStars(); resize(); }, { passive:true });
-  function updateStars(dt){ for(const s of stars){ s.y += s.s * 60 * dt; if(s.y > window.innerHeight){ s.y = -2; s.x = Math.random()*window.innerWidth; } } }
-  function drawStars(){ ctx.fillStyle = '#bfe7ff'; for(const s of stars) ctx.fillRect(s.x, s.y, s.r, s.r); }
+  
+  let starTime = 0;
+  function updateStars(dt){ 
+    starTime += dt;
+    for(const s of stars){ 
+      s.y += s.s * 60 * dt; 
+      if(s.y > window.innerHeight){ 
+        s.y = -2; 
+        s.x = Math.random()*window.innerWidth; 
+      }
+      // Efeito de piscar para algumas estrelas
+      if(s.blink) {
+        s.visible = Math.sin(starTime / s.blinkSpeed) > 0;
+      }
+    } 
+  }
+  
+  function drawStars(){ 
+    ctx.fillStyle = '#bfe7ff'; 
+    for(const s of stars) {
+      if(s.blink && !s.visible) continue;
+      // Estrelas quadradas para efeito pixelado
+      ctx.fillRect(Math.floor(s.x), Math.floor(s.y), Math.floor(s.r), Math.floor(s.r));
+    }
+  }
 
   /* -------------------------
      Helpers
@@ -238,7 +563,13 @@
     for(let i=0;i<amount;i++){
       const ang = rand(0,Math.PI*2);
       const sp = rand(80,360);
-      particles.push({ x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life:0.6+Math.random()*0.6, r:1+Math.random()*3 });
+      particles.push({ 
+        x, y, 
+        vx:Math.cos(ang)*sp, 
+        vy:Math.sin(ang)*sp, 
+        life:0.6+Math.random()*0.6, 
+        r:1+Math.random()*3 
+      });
     }
   }
 
@@ -256,7 +587,8 @@
         w:56, h:56,
         vy: rand(40, 80) + fase*8,
         hp: Math.max(1, Math.ceil(1 + fase*0.6)),
-        alive:true, id:i
+        alive:true, 
+        id:i
       });
     }
   }
@@ -301,7 +633,7 @@
       w:420, h:220,
       hp: 180 + Math.floor(Math.random()*80) + fase*12,
       maxHp: 260,
-      name: 'Carolina Manca',
+      name: 'CAROLINA MANCA',
       mestre:true,
       vx:0,
       lastShot: performance.now(),
@@ -329,8 +661,16 @@
       else if(r < 0.14) type = 'life';
       else type = 'weapon';
     }
-    const pu = { x: x - 14, y: y - 14, w: 28, h: 28, vy: 120, type: type, id: Math.random().toString(36).slice(2,9) };
-    if(type === 'rare') pu.rare = true;
+    const pu = { 
+      x: x - 14, 
+      y: y - 14, 
+      w: 28, h: 28, 
+      vy: 120, 
+      type: type, 
+      id: Math.random().toString(36).slice(2,9),
+      rare: type === 'rare',
+      pulse: 0
+    };
     powerups.push(pu);
     persistUI();
     return pu;
@@ -344,19 +684,21 @@
     const persistedRares = JSON.parse(localStorage.getItem('space_persisted_rares') || '[]');
     highscoreEl.textContent = hs;
     persistCountEl.textContent = persistedRares.length;
-    // Recover rare items into player's inventory if desired (we'll keep count only)
     return { highscore: hs, persistedRares };
   }
+  
   function saveHighscore(v){
     localStorage.setItem('space_highscore', String(v));
     highscoreEl.textContent = v;
   }
+  
   function persistUI(){
     const arr = powerups.filter(p=>p.rare).map(p=>p.id);
     localStorage.setItem('space_persisted_rares', JSON.stringify(arr));
     persistCountEl.textContent = arr.length;
     rareCountEl.textContent = player.inventory.length;
   }
+  
   loadPersistence();
 
   /* -------------------------
@@ -385,18 +727,25 @@
     el.addEventListener('pointerup', end, { passive:false });
     el.addEventListener('pointerleave', end, { passive:false });
     el.addEventListener('pointercancel', end);
-    // also support touch events for some older browsers
     el.addEventListener('touchstart', start, { passive:false });
     el.addEventListener('touchend', end, { passive:false });
   }
-  bindDbtn(dbUp,'up'); bindDbtn(dbDown,'down'); bindDbtn(dbLeft,'left'); bindDbtn(dbRight,'right'); bindDbtn(dbFire,'shoot');
+  bindDbtn(dbUp,'up'); 
+  bindDbtn(dbDown,'down'); 
+  bindDbtn(dbLeft,'left'); 
+  bindDbtn(dbRight,'right'); 
+  bindDbtn(dbFire,'shoot');
 
   const keys = {};
   window.addEventListener('keydown', e=>{
-    // unify: use e.code for special keys, e.key for letters
-    if(e.code === 'Space'){ keys['space'] = true; e.preventDefault(); }
-    else keys[e.key.toLowerCase()] = true;
+    if(e.code === 'Space'){ 
+      keys['space'] = true; 
+      e.preventDefault(); 
+    } else {
+      keys[e.key.toLowerCase()] = true;
+    }
   }, { passive:false });
+  
   window.addEventListener('keyup', e=>{
     if(e.code === 'Space') keys['space'] = false;
     else keys[e.key.toLowerCase()] = false;
@@ -411,30 +760,50 @@
     ensureAudioResume();
     menuStart.style.display = 'none';
     menuOver.style.display = 'none';
-    running = true; score = 0; killed = 0; fase = 1; vidas = 3; player.alive = true; weaponLevel = 1;
+    running = true; 
+    score = 0; 
+    killed = 0; 
+    fase = 1; 
+    vidas = 3; 
+    player.alive = true; 
+    weaponLevel = 1;
     player.inventory = JSON.parse(localStorage.getItem('space_inventory') || '[]');
-    powerups = []; enemyBullets = []; bullets = []; particles = [];
+    powerups = []; 
+    enemyBullets = []; 
+    bullets = []; 
+    particles = [];
     insaneMode = initInsane;
-    updateUI(); centerPlayer(); spawnEnemies();
+    updateUI(); 
+    centerPlayer(); 
+    spawnEnemies();
     last = performance.now();
     requestAnimationFrame(loop);
   }
+  
   startBtn.addEventListener('click', ()=> start(false));
   startInsaneBtn.addEventListener('click', ()=> start(true));
+  
   restartBtn.addEventListener('click', ()=> {
-    // clear persisted rares when restarting? Keep them as "persisted items" but reset inventory
     player.inventory = [];
     localStorage.setItem('space_inventory', JSON.stringify([]));
     start(insaneMode);
   });
+  
   backToMenuBtn.addEventListener('click', ()=> {
     menuOver.style.display = 'none';
     menuStart.style.display = 'block';
   });
 
   pauseBtn.addEventListener('click', ()=>{
-    if(!running){ running = true; pauseBtn.textContent = 'Pausar'; last = performance.now(); requestAnimationFrame(loop); }
-    else { running = false; pauseBtn.textContent = 'Continuar'; }
+    if(!running){ 
+      running = true; 
+      pauseBtn.innerHTML = '<i class="fas fa-pause"></i> PAUSAR'; 
+      last = performance.now(); 
+      requestAnimationFrame(loop); 
+    } else { 
+      running = false; 
+      pauseBtn.innerHTML = '<i class="fas fa-play"></i> CONTINUAR'; 
+    }
   });
 
   /* -------------------------
@@ -444,7 +813,11 @@
     const f = e.target.files && e.target.files[0];
     if(!f) return;
     const r = new FileReader();
-    r.onload = ()=> { playerImg.src = r.result; playerLoaded = false; playerImg.onload = ()=> playerLoaded = true; };
+    r.onload = ()=> { 
+      playerImg.src = r.result; 
+      playerLoaded = false; 
+      playerImg.onload = ()=> playerLoaded = true; 
+    };
     r.readAsDataURL(f);
   });
 
@@ -481,7 +854,10 @@
       const eb = enemyBullets[i];
       eb.x += eb.vx * dt;
       eb.y += eb.vy * dt;
-      if(eb.x < -60 || eb.x > W + 60 || eb.y < -60 || eb.y > H + 60) { enemyBullets.splice(i,1); continue; }
+      if(eb.x < -60 || eb.x > W + 60 || eb.y < -60 || eb.y > H + 60) { 
+        enemyBullets.splice(i,1); 
+        continue; 
+      }
       if(player.alive && rects(eb, player)){
         enemyBullets.splice(i,1);
         spawnExplosion(player.x + player.w/2, player.y + player.h/2, 14);
@@ -604,7 +980,7 @@
             updateUI();
             const defeatedName = boss.name || 'Mestre';
             boss = null;
-            setTimeout(()=> win(`${defeatedName} foi derrotada!`), 400);
+            setTimeout(()=> win(`${defeatedName} FOI DERROTADA!`), 400);
             break;
           }
         }
@@ -616,12 +992,17 @@
     for (let i = powerups.length - 1; i >= 0; i--) {
       const p = powerups[i];
       p.y += p.vy * dt;
+      p.pulse = (p.pulse + dt * 5) % (Math.PI * 2);
+      
       if (rects(player, p)) {
-        if (p.type === 'weapon') { weaponLevel = Math.min(MAX_WEAPON, weaponLevel + 1); sfx('power'); }
-        else if (p.type === 'life') { vidas++; sfx('power'); }
-        else if (p.type === 'rare') {
-          player.inventory.push({ id: p.id, name: 'Relíquia Rara' });
-          // permanent boost
+        if (p.type === 'weapon') { 
+          weaponLevel = Math.min(MAX_WEAPON, weaponLevel + 1); 
+          sfx('power'); 
+        } else if (p.type === 'life') { 
+          vidas++; 
+          sfx('power'); 
+        } else if (p.type === 'rare') {
+          player.inventory.push({ id: p.id, name: 'RELÍQUIA RARA' });
           weaponLevel = Math.min(MAX_WEAPON, weaponLevel + 1);
           sfx('power');
         }
@@ -654,12 +1035,14 @@
   function playerDie(){
     player.alive = false;
     spawnExplosion(player.x + player.w/2, player.y + player.h/2, 96);
-    const wrap = document.getElementById('wrap'); wrap.classList.add('shake'); setTimeout(()=> wrap.classList.remove('shake'), 700);
+    const wrap = document.getElementById('wrap'); 
+    wrap.classList.add('shake'); 
+    setTimeout(()=> wrap.classList.remove('shake'), 700);
     sfx('explosion');
     running = false;
     setTimeout(()=>{
-      document.getElementById('overTitle').innerText = 'Game Over';
-      overScore.innerText = 'Score: ' + score;
+      document.getElementById('overTitle').innerText = 'GAME OVER';
+      overScore.innerText = 'SCORE: ' + score;
       menuOver.style.display = 'block';
       // highscore check
       const hs = parseInt(localStorage.getItem('space_highscore')||'0',10);
@@ -671,8 +1054,8 @@
   function win(message){
     running=false;
     menuOver.style.display='none';
-    document.getElementById('overTitle').innerText = message ? message : 'Você venceu!';
-    overScore.innerText = 'Score: ' + score;
+    document.getElementById('overTitle').innerText = message ? message : 'VOCÊ VENCEU!';
+    overScore.innerText = 'SCORE: ' + score;
     menuOver.style.display='block';
     const hs = parseInt(localStorage.getItem('space_highscore')||'0',10);
     if(score > hs) saveHighscore(score);
@@ -680,116 +1063,203 @@
   }
 
   /* -------------------------
-     Draw everything
+     Draw everything - Estilo retrô
      ------------------------- */
   function draw(){
     const W = canvas.width/DPR, H = canvas.height/DPR;
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // background gradient
+    // background gradient retrô
     const g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,'#001021'); g.addColorStop(1,'#00030a');
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    g.addColorStop(0,'#000820'); 
+    g.addColorStop(0.5,'#000515');
+    g.addColorStop(1,'#00020a');
+    ctx.fillStyle = g; 
+    ctx.fillRect(0,0,W,H);
+    
+    // Grid de fundo estilo arcade
+    ctx.strokeStyle = 'rgba(0, 100, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for(let x = 0; x < W; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for(let y = 0; y < H; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+    
     drawStars();
 
-    // player bullets
-    ctx.fillStyle = '#ffd880';
-    for(const b of bullets) ctx.fillRect(b.x,b.y,b.w,b.h);
+    // player bullets - estilo pixelado
+    ctx.fillStyle = '#ffff00';
+    for(const b of bullets) {
+      // Efeito de trilha
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+      ctx.fillRect(b.x, b.y + b.h, b.w, 4);
+      ctx.fillStyle = '#ffff00';
+      ctx.fillRect(Math.floor(b.x), Math.floor(b.y), Math.floor(b.w), Math.floor(b.h));
+    }
 
     // enemies
     for(const e of enemies){
       if(!e.alive) continue;
-      if(enemyLoaded) ctx.drawImage(enemyImg, e.x, e.y, e.w, e.h);
-      else {
-        ctx.fillStyle = 'var(--danger)';
-        ctx.fillRect(e.x, e.y, e.w, e.h);
+      if(enemyLoaded) {
+        ctx.drawImage(enemyImg, Math.floor(e.x), Math.floor(e.y), Math.floor(e.w), Math.floor(e.h));
+      } else {
+        // Fallback gráfico estilo retrô
+        ctx.fillStyle = '#ff3a3a';
+        ctx.fillRect(Math.floor(e.x), Math.floor(e.y), Math.floor(e.w), Math.floor(e.h));
+        ctx.fillStyle = '#000';
+        ctx.font = '16px "VT323"';
+        ctx.fillText('ENEMY', Math.floor(e.x + 8), Math.floor(e.y + e.h/2 + 5));
       }
-      // small HP bar
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(e.x, e.y-6, e.w, 4);
-      ctx.fillStyle = '#ffcc66';
+      // HP bar estilo arcade
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(Math.floor(e.x), Math.floor(e.y-8), Math.floor(e.w), 6);
+      ctx.fillStyle = '#ffcc00';
       const baseHp = Math.max(1, Math.ceil(1 + fase*0.6));
       const hpPerc = Math.max(0, e.hp) / baseHp;
-      ctx.fillRect(e.x, e.y-6, e.w * hpPerc, 4);
+      ctx.fillRect(Math.floor(e.x), Math.floor(e.y-8), Math.floor(e.w * hpPerc), 6);
     }
 
-    // boss
+    // boss - estilo retrô
     if(boss){
-      // body
-      ctx.fillStyle = '#c13cff';
-      ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
-      // name & hp
+      // corpo com gradiente
+      const bossGrad = ctx.createLinearGradient(boss.x, boss.y, boss.x, boss.y + boss.h);
+      bossGrad.addColorStop(0, '#ff00ff');
+      bossGrad.addColorStop(1, '#9900cc');
+      ctx.fillStyle = bossGrad;
+      ctx.fillRect(Math.floor(boss.x), Math.floor(boss.y), Math.floor(boss.w), Math.floor(boss.h));
+      
+      // borda neon
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(Math.floor(boss.x), Math.floor(boss.y), Math.floor(boss.w), Math.floor(boss.h));
+      
+      // nome & hp
       ctx.fillStyle = '#fff';
-      ctx.font = '20px Inter';
-      ctx.fillText(boss.name + ' (Mestre)', boss.x + 12, boss.y + 28);
-      ctx.fillText('HP: ' + Math.max(0, boss.hp), boss.x + 12, boss.y + 52);
-      // aura
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(193,60,255,0.12)';
-      ctx.lineWidth = 8; ctx.strokeRect(boss.x-6, boss.y-6, boss.w+12, boss.h+12);
-      ctx.lineWidth = 1;
-      // boss HP bar
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(boss.x + 8, boss.y + 12, boss.w - 16, 14);
+      ctx.font = '24px "Orbitron"';
+      ctx.fillText(boss.name, Math.floor(boss.x + 20), Math.floor(boss.y + 30));
+      ctx.font = '20px "VT323"';
+      ctx.fillText('HP: ' + Math.max(0, boss.hp), Math.floor(boss.x + 20), Math.floor(boss.y + 60));
+      
+      // boss HP bar estilo arcade
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(Math.floor(boss.x + 10), Math.floor(boss.y + 15), Math.floor(boss.w - 20), 16);
       ctx.fillStyle = '#ff5cbd';
       const hpPerc = Math.max(0, boss.hp) / (boss.maxHp || 260);
-      ctx.fillRect(boss.x + 8, boss.y + 12, (boss.w - 16) * Math.max(0, hpPerc), 14);
+      ctx.fillRect(Math.floor(boss.x + 10), Math.floor(boss.y + 15), Math.floor((boss.w - 20) * Math.max(0, hpPerc)), 16);
+      
+      // efeito de pulso na barra de HP
+      if (hpPerc < 0.3) {
+        const pulse = Math.sin(performance.now() * 0.01) * 0.5 + 0.5;
+        ctx.fillStyle = `rgba(255, 255, 255, ${pulse * 0.5})`;
+        ctx.fillRect(Math.floor(boss.x + 10), Math.floor(boss.y + 15), Math.floor((boss.w - 20) * Math.max(0, hpPerc)), 16);
+      }
     }
 
-    // powerups
+    // powerups com efeito de pulso
     for (const p of powerups) {
+      const pulseScale = 1 + Math.sin(p.pulse) * 0.2;
+      const size = 14 * pulseScale;
+      const x = p.x + p.w/2 - size/2;
+      const y = p.y + p.h/2 - size/2;
+      
       if(p.rare){
-        ctx.fillStyle = 'var(--gold)';
+        // Item raro - dourado com brilho
+        ctx.fillStyle = '#ffd700';
         ctx.beginPath();
-        ctx.arc(p.x + p.w/2, p.y + p.h/2, 16, 0, Math.PI*2);
+        ctx.arc(x + size/2, y + size/2, size, 0, Math.PI*2);
         ctx.fill();
         ctx.fillStyle = '#331a00';
-        ctx.font = '16px Inter';
-        ctx.fillText('★', p.x + 6, p.y + 22);
+        ctx.font = `${Math.floor(16 * pulseScale)}px "VT323"`;
+        ctx.fillText('★', x + size/2 - 8 * pulseScale, y + size/2 + 8 * pulseScale);
+        
+        // Brilho exterior
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x + size/2, y + size/2, size + 3, 0, Math.PI*2);
+        ctx.stroke();
       } else if(p.type === 'life'){
         ctx.fillStyle = '#ff7b7b';
         ctx.beginPath();
-        ctx.arc(p.x + p.w/2, p.y + p.h/2, 14, 0, Math.PI*2);
+        ctx.arc(x + size/2, y + size/2, size, 0, Math.PI*2);
         ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.font = '14px Inter';
-        ctx.fillText('+', p.x + 8, p.y + 21);
+        ctx.font = `${Math.floor(14 * pulseScale)}px "VT323"`;
+        ctx.fillText('+', x + size/2 - 4 * pulseScale, y + size/2 + 7 * pulseScale);
       } else {
-        ctx.fillStyle = 'var(--accent)';
+        ctx.fillStyle = '#00ff9d';
         ctx.beginPath();
-        ctx.arc(p.x + p.w/2, p.y + p.h/2, 14, 0, Math.PI*2);
+        ctx.arc(x + size/2, y + size/2, size, 0, Math.PI*2);
         ctx.fill();
-        ctx.fillStyle = '#04221a';
-        ctx.font = '16px Inter';
-        ctx.fillText('⚡', p.x + 6, p.y + 22);
+        ctx.fillStyle = '#000';
+        ctx.font = `${Math.floor(16 * pulseScale)}px "VT323"`;
+        ctx.fillText('⚡', x + size/2 - 8 * pulseScale, y + size/2 + 8 * pulseScale);
       }
     }
 
     // player
     if(player.alive){
-      if(playerLoaded) ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
-      else {
-        ctx.fillStyle = '#7be7d0';
-        ctx.fillRect(player.x, player.y, player.w, player.h);
-        ctx.fillStyle = '#04221a';
-        ctx.font = '18px Inter';
-        ctx.fillText('NAVE', player.x + 8, player.y + player.h/2 + 6);
+      if(playerLoaded) {
+        ctx.drawImage(playerImg, Math.floor(player.x), Math.floor(player.y), Math.floor(player.w), Math.floor(player.h));
+      } else {
+        // Fallback gráfico estilo retrô
+        const playerGrad = ctx.createLinearGradient(player.x, player.y, player.x, player.y + player.h);
+        playerGrad.addColorStop(0, '#00ff9d');
+        playerGrad.addColorStop(1, '#00cc7a');
+        ctx.fillStyle = playerGrad;
+        ctx.fillRect(Math.floor(player.x), Math.floor(player.y), Math.floor(player.w), Math.floor(player.h));
+        
+        ctx.fillStyle = '#000';
+        ctx.font = '20px "VT323"';
+        ctx.fillText('NAVE', Math.floor(player.x + 12), Math.floor(player.y + player.h/2 + 6));
+        
+        // Borda neon
+        ctx.strokeStyle = '#00ff9d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Math.floor(player.x), Math.floor(player.y), Math.floor(player.w), Math.floor(player.h));
       }
     }
 
-    // enemy bullets
+    // enemy bullets - estilo pixelado
     ctx.fillStyle = '#ff8a8a';
     for(const eb of enemyBullets){
       ctx.beginPath();
-      ctx.arc(eb.x, eb.y, Math.max(4, eb.w/2), 0, Math.PI*2);
+      ctx.arc(Math.floor(eb.x), Math.floor(eb.y), Math.max(4, eb.w/2), 0, Math.PI*2);
       ctx.fill();
+      
+      // Efeito de trilha
+      ctx.fillStyle = 'rgba(255, 138, 138, 0.5)';
+      ctx.beginPath();
+      ctx.arc(Math.floor(eb.x - eb.vx * 0.1), Math.floor(eb.y - eb.vy * 0.1), Math.max(2, eb.w/3), 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#ff8a8a';
     }
 
     // particles
     for(const p of particles){
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = `rgba(255,160,80,${Math.max(0, p.life)})`; ctx.fill();
+      ctx.beginPath(); 
+      ctx.arc(Math.floor(p.x), Math.floor(p.y), Math.floor(p.r), 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,160,80,${Math.max(0, p.life)})`; 
+      ctx.fill();
     }
+    
+    // Efeito de vignette
+    const vignette = ctx.createRadialGradient(
+      W/2, H/2, 0,
+      W/2, H/2, Math.max(W, H)/2
+    );
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, W, H);
   }
 
   /* -------------------------
@@ -800,7 +1270,11 @@
   /* -------------------------
      Game init positions
      ------------------------- */
-  function initPositions(){ centerPlayer(); spawnEnemies(); updateUI(); }
+  function initPositions(){ 
+    centerPlayer(); 
+    spawnEnemies(); 
+    updateUI(); 
+  }
   initPositions();
 
   // expose small debug on console
